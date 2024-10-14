@@ -3,8 +3,11 @@
 //
 
 #include <complex>
+#include <cstdint>
+#include <cstring>
+#include <bitset>
 
-#define INTEGER_BITS 1
+#define INTEGER_BITS 16
 
 #define TYPE int64_t
 #define BITS 64
@@ -23,13 +26,29 @@ public:
     }
 
     explicit FixedPoint(double d) {
-        unsigned long long bits = *reinterpret_cast<unsigned long long*>(&d);
-        int signBit = bits >> 63;
-        int exponent = ((bits >> 52) & 0x7FF) - 1023;
-        unsigned long long mantissa = (bits & 0xFFFFFFFFFFFFF) + 4503599627370496;
+        uint64_t data = *reinterpret_cast<uint64_t*>(&d);
+        number = (int64_t)((data & 0xFFFFFFFFFFFFF) + 4503599627370496);
 
-        number = mantissa << 11;
-        number >>= -1 * exponent + 1;
+        int shift = 11 - INTEGER_BITS;
+        if (shift > 0) {
+            number <<= shift;
+        } else {
+            number >>= -shift;
+        }
+
+        int exponent = (int)(((data >> 52) & 0x7FF) - 1023);
+
+        if (exponent > 0) {
+            number <<= exponent;
+        } else {
+            number >>= -exponent;
+        }
+
+        int signBit = (int)(data >> 63);
+        if (signBit == 1) {
+            number *= -1;
+        }
+
     }
 
     FixedPoint operator+(FixedPoint other) const {
@@ -65,27 +84,30 @@ public:
         return this->number != other.number;
     }
 
-    double to_double() const {
+    [[nodiscard]] double to_double() const {
         double res = 0;
-        TYPE positiveNumber = this->number;
-        if (this->number>>(BITS-1) == 0x1) {
-            positiveNumber = ~positiveNumber;
-            positiveNumber++;
+        TYPE absNumber = this->number;
+        bool negative = false;
+        if (this->number < 0) {
+            negative = true;
+
+            absNumber = ~absNumber;
+            absNumber += 1;
         }
 
         int i = BITS - 2;
         while (i >= 0) {
-            int bit = (this->number >> (i--)) & 0x1;
+            int bit = (int)((absNumber >> (i--)) & 0x1);
             if (bit == 1) {
                 res += std::exp(std::log(2) * (i-BITS+3));
             }
         }
 
-        if (this->number>>(BITS-1) == -1) {
+        res *= 1L<<(INTEGER_BITS-1);
+
+        if (negative) {
             res *= -1;
         }
-
-        res *= 1L<<(INTEGER_BITS-1);
 
         return res;
     }

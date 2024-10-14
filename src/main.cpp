@@ -7,11 +7,12 @@
 #include <iomanip>
 
 int main() {
+    std::cout << std::setprecision(10);
     int64_t inta = 0b0000000001111111111111111111111111111111111111111111111111111111;
     int64_t intb = 0b0000000001111111111111111111111111111111111111111111111111111111;
 
-    double floatA = 2.4;
-    double floatB = -1.3;
+    double floatA = -7.43;
+    double floatB = 20.5;
 
     FixedPoint a = FixedPoint(floatA);
     FixedPoint b = FixedPoint(floatB);
@@ -19,9 +20,9 @@ int main() {
     FixedPoint res = a*b;
 
 
-    std::cout << std::setprecision(100) << a.to_double() << std::endl;
-    std::cout << std::setprecision(100) << b.to_double() << std::endl;
-    std::cout << std::setprecision(100) << res.to_double() << std::endl;
-    std::cout << std::setprecision(100) << res.number << std::endl;
+    std::cout << a.to_double() << std::endl;
+    std::cout << b.to_double() << std::endl;
+    std::cout << res.to_double() << std::endl;
+    std::cout << res.number << std::endl;
     return 0;
 }
