@@ -204,3 +204,7 @@ public:
         return res;
     }
 };
+
+std::ostream &operator<<(std::ostream &os, FixedPoint const &fp) {
+    return os << fp.to_double();
+}
