@@ -7,11 +7,12 @@
 #include <cstring>
 #include <bitset>
 
-#define INTEGER_BITS 16
+#define INTEGER_BITS 13
 
 #define TYPE int64_t
 #define BITS 64
 #define XL_TYPE __int128
+#define XL_BITS 128
 
 class FixedPoint {
 public:
@@ -23,6 +24,14 @@ public:
 
     explicit FixedPoint(TYPE n) {
         number = n;
+    }
+
+    explicit FixedPoint(int i) {
+        number = (TYPE)i << (BITS - INTEGER_BITS - 1);
+
+        if ((number >> (BITS - INTEGER_BITS - 1)) != i) {
+            throw std::runtime_error("Integer constructor out of bounds.");
+        }
     }
 
     explicit FixedPoint(double d) {
@@ -51,6 +60,39 @@ public:
 
     }
 
+    FixedPoint floor() {
+        this->number >>= BITS - INTEGER_BITS - 1;
+        this->number <<= BITS - INTEGER_BITS - 1;
+
+        return *this;
+    }
+
+    FixedPoint ceil() {
+        this->number >>= BITS - INTEGER_BITS - 1;
+        this->number++;
+        this->number <<= BITS - INTEGER_BITS - 1;
+
+        return *this;
+    }
+
+    FixedPoint round() {
+        TYPE absNumber = this->number;
+        bool negative = false;
+        if (this->number < 0) {
+            negative = true;
+            absNumber = ~absNumber;
+            absNumber += 1;
+        }
+
+        int firstFractionBit = (int)(absNumber >> (BITS - INTEGER_BITS - 2)) & 0x1;
+
+        if (!((firstFractionBit == 1) ^ !negative)) {
+            return this->ceil();
+        } else {
+            return this->floor();
+        }
+    }
+
     FixedPoint operator+(FixedPoint other) const {
         return FixedPoint(this->number + other.number);
     }
@@ -68,20 +110,70 @@ public:
         return result;
     }
 
+    FixedPoint operator/(FixedPoint other) const {
+        FixedPoint result;
+
+        XL_TYPE res = (static_cast<XL_TYPE>(this->number) << (XL_BITS - BITS)) / static_cast<XL_TYPE>(other.number);
+        result.number = static_cast<TYPE>(res >> (INTEGER_BITS + 1));
+
+        return result;
+    }
+
     bool operator<(FixedPoint other) const {
         return this->number < other.number;
     }
-
+    bool operator<=(FixedPoint other) const {
+        return this->number <= other.number;
+    }
     bool operator>(FixedPoint other) const {
         return this->number > other.number;
     }
-
+    bool operator>=(FixedPoint other) const {
+        return this->number >= other.number;
+    }
     bool operator==(FixedPoint other) const {
         return this->number == other.number;
     }
-
     bool operator!=(FixedPoint other) const {
         return this->number != other.number;
+    }
+
+    bool operator<(int other) const {
+        return this->number < other;
+    }
+    bool operator<=(int other) const {
+        return this->number <= other;
+    }
+    bool operator>(int other) const {
+        return this->number > other;
+    }
+    bool operator>=(int other) const {
+        return this->number >= other;
+    }
+    bool operator==(int other) const {
+        return this->number == other;
+    }
+    bool operator!=(int other) const {
+        return this->number != other;
+    }
+
+    bool operator<(double other) const {
+        return this->number < FixedPoint(other).number;
+    }
+    bool operator<=(double other) const {
+        return this->number <= FixedPoint(other).number;
+    }
+    bool operator>(double other) const {
+        return this->number > FixedPoint(other).number;
+    }
+    bool operator>=(double other) const {
+        return this->number >= FixedPoint(other).number;
+    }
+    bool operator==(double other) const {
+        return this->number == FixedPoint(other).number;
+    }
+    bool operator!=(double other) const {
+        return this->number != FixedPoint(other).number;
     }
 
     [[nodiscard]] double to_double() const {

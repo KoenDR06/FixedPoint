@@ -3,5 +3,12 @@ project(FixedPoint)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(FixedPoint src/main.cpp
-        src/FixedPoint.h)
+include(CTest)
+
+add_executable(
+        FixedPoint
+        src/main.cpp
+        src/FixedPoint.h
+)
+
+include(${CMAKE_CURRENT_BINARY_DIR}/../generated_tests.cmake)
