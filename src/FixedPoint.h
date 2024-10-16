@@ -139,22 +139,22 @@ public:
     }
 
     bool operator<(int other) const {
-        return this->number < other;
+        return this->number < FixedPoint(other).number;
     }
     bool operator<=(int other) const {
-        return this->number <= other;
+        return this->number <= FixedPoint(other).number;
     }
     bool operator>(int other) const {
-        return this->number > other;
+        return this->number > FixedPoint(other).number;
     }
     bool operator>=(int other) const {
-        return this->number >= other;
+        return this->number >= FixedPoint(other).number;
     }
     bool operator==(int other) const {
-        return this->number == other;
+        return this->number == FixedPoint(other).number;
     }
     bool operator!=(int other) const {
-        return this->number != other;
+        return this->number != FixedPoint(other).number;
     }
 
     bool operator<(double other) const {
