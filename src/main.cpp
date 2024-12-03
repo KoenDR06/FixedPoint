@@ -8,8 +8,8 @@
 
 int main() {
     std::cout << std::setprecision(10);
-    double floatA = -45.23;
-    double floatB = 3;
+    constexpr double floatA = -45.23;
+    constexpr double floatB = 3;
 
     FixedPoint a = FixedPoint(floatA);
     FixedPoint b = FixedPoint(floatB);

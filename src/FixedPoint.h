@@ -1,6 +1,7 @@
 //
 // Created by KoenDR06 on 10/10/24.
 //
+#pragma once
 
 #include <complex>
 #include <cstdint>
@@ -27,7 +28,7 @@ public:
     }
 
     explicit FixedPoint(int i) {
-        number = (TYPE)i << (BITS - INTEGER_BITS - 1);
+        number = static_cast<TYPE>(i) << (BITS - INTEGER_BITS - 1);
 
         if ((number >> (BITS - INTEGER_BITS - 1)) != i) {
             throw std::runtime_error("Integer constructor out of bounds.");
@@ -36,7 +37,7 @@ public:
 
     explicit FixedPoint(double d) {
         uint64_t data = *reinterpret_cast<uint64_t*>(&d);
-        number = (int64_t)((data & 0xFFFFFFFFFFFFF) + 4503599627370496);
+        number = static_cast<int64_t>((data & 0xFFFFFFFFFFFFF) + 4503599627370496);
 
         int shift = 11 - INTEGER_BITS;
         if (shift > 0) {
@@ -45,7 +46,7 @@ public:
             number >>= -shift;
         }
 
-        int exponent = (int)(((data >> 52) & 0x7FF) - 1023);
+        const int exponent = static_cast<int>(((data >> 52) & 0x7FF) - 1023);
 
         if (exponent > 0) {
             number <<= exponent;
@@ -53,7 +54,7 @@ public:
             number >>= -exponent;
         }
 
-        int signBit = (int)(data >> 63);
+        const int signBit = static_cast<int>(data >> 63);
         if (signBit == 1) {
             number *= -1;
         }
@@ -84,9 +85,9 @@ public:
             absNumber += 1;
         }
 
-        int firstFractionBit = (int)(absNumber >> (BITS - INTEGER_BITS - 2)) & 0x1;
+        const int firstFractionBit = static_cast<int>(absNumber >> (BITS - INTEGER_BITS - 2)) & 0x1;
 
-        if (!((firstFractionBit == 1) ^ !negative)) {
+        if (!(firstFractionBit == 1 ^ !negative)) {
             return this->ceil();
         } else {
             return this->floor();
@@ -189,7 +190,7 @@ public:
 
         int i = BITS - 2;
         while (i >= 0) {
-            int bit = (int)((absNumber >> (i--)) & 0x1);
+            int bit = static_cast<int>(absNumber >> i-- & 0x1);
             if (bit == 1) {
                 res += std::exp(std::log(2) * (i-BITS+3));
             }
@@ -205,6 +206,6 @@ public:
     }
 };
 
-std::ostream &operator<<(std::ostream &os, FixedPoint const &fp) {
+inline std::ostream &operator<<(std::ostream &os, FixedPoint const &fp) {
     return os << fp.to_double();
 }
